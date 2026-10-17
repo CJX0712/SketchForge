@@ -27,7 +27,9 @@ def _pack_counts(lookup: dict[int, int]) -> tuple[dict, dict]:
 
 
 def _unpack_counts(arrays: dict, scalars: dict) -> dict[int, int]:
-    return {int(k): int(v) for k, v in zip(arrays["_k"].tolist(), arrays["_v"].tolist(), strict=True)}
+    return {
+        int(k): int(v) for k, v in zip(arrays["_k"].tolist(), arrays["_v"].tolist(), strict=True)
+    }
 
 
 @register
@@ -209,7 +211,9 @@ class LossyCounting(AbstractSketch):
         self._n = int(scalars["_n"])
         self._counts = {
             int(k): (int(f), int(d))
-            for k, f, d in zip(arrays["_k"].tolist(), arrays["_f"].tolist(), arrays["_d"].tolist(), strict=True)
+            for k, f, d in zip(
+                arrays["_k"].tolist(), arrays["_f"].tolist(), arrays["_d"].tolist(), strict=True
+            )
         }
 
 
@@ -230,9 +234,7 @@ class CmPlusHeap(AbstractSketch):
         super().__init__(seed=seed)
         self._width_power = int(width_power)
         self._width = 1 << self._width_power
-        self._row_seeds = [
-            self._seed_state.derive(f"cmh:{r}") for r in range(4)
-        ]
+        self._row_seeds = [self._seed_state.derive(f"cmh:{r}") for r in range(4)]
         self._counts = np.zeros((4, self._width), dtype=np.int64)
         self._exact: dict[int, int] = {}
         self._exact_cap = self._width

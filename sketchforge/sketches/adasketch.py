@@ -130,7 +130,9 @@ class AdaSketch:
     def _build(self) -> None:
         plan = self._allocate()
         self._plan = plan
-        k_shared = max(16, min(8192, plan.get("M_shared", self._config.b_min_shared) // _BYTES_PER_ENTRY))
+        k_shared = max(
+            16, min(8192, plan.get("M_shared", self._config.b_min_shared) // _BYTES_PER_ENTRY)
+        )
         self._shared = _BottomKCore(k=k_shared, seed=self._seed)
         q2_params = self._config.q2_method.params_for_budget(plan.get("M_q2", 0), seed=self._seed)
         self._q2 = self._config.q2_method(seed=self._seed, **q2_params)
@@ -150,7 +152,9 @@ class AdaSketch:
         if query.kind is QueryType.CARDINALITY:
             return Estimate(value=self._shared.cardinality(), n_updates=self._shared._seen)
         if query.kind is QueryType.FREQUENCY:
-            return Estimate(value=self._shared.frequency(int(query.key)), n_updates=self._shared._seen)
+            return Estimate(
+                value=self._shared.frequency(int(query.key)), n_updates=self._shared._seen
+            )
         if query.kind is QueryType.QUANTILE:
             return self._q2.estimate(query)
         if query.kind is QueryType.HEAVY_HITTERS:

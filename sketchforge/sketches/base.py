@@ -126,9 +126,9 @@ def _unpack_state(payload: bytes) -> tuple[str, dict[str, Any], dict[str, np.nda
         dtype = _DTYPE_BY_CODE.get(code)
         if dtype is None:
             raise SerializationError("unknown dtype code in payload", code=code)
-        arrays[key] = np.frombuffer(
-            bytes(view[offset : offset + nbytes]), dtype=dtype
-        ).reshape(tuple(shape))
+        arrays[key] = np.frombuffer(bytes(view[offset : offset + nbytes]), dtype=dtype).reshape(
+            tuple(shape)
+        )
         offset += nbytes
     return name, meta, arrays
 
@@ -222,9 +222,7 @@ class AbstractSketch:
     # ------------------------------------------------------------------ algebra
     def merge(self, other: AbstractSketch) -> AbstractSketch:
         if not self.SUPPORTS_MERGE:
-            raise MergeUnsupportedError(
-                "sketch does not support merge", sketch=type(self).__name__
-            )
+            raise MergeUnsupportedError("sketch does not support merge", sketch=type(self).__name__)
         if type(self) is not type(other):
             raise MergeTypeError(
                 "cannot merge sketches of different types",

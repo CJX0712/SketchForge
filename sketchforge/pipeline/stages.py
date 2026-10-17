@@ -50,7 +50,9 @@ def _budget_grid(max_budget: int) -> list[int]:
     return sorted(set(grid))
 
 
-def fit_laws(calibration, oracle, max_budget: int, seed: int, n_cal_seeds: int = 3) -> dict[QueryType, ErrorLaw]:
+def fit_laws(
+    calibration, oracle, max_budget: int, seed: int, n_cal_seeds: int = 3
+) -> dict[QueryType, ErrorLaw]:
     """Fit a power-law error model per query family on disjoint calibration streams.
 
     The error is averaged over ``n_cal_seeds`` independent calibration realizations
@@ -61,7 +63,10 @@ def fit_laws(calibration, oracle, max_budget: int, seed: int, n_cal_seeds: int =
     grid = _budget_grid(max_budget)
     n = len(calibration.values)
     spec = calibration.spec
-    cal_streams = [generate(StreamSpec(kind=spec.kind, n=n, domain=spec.domain, seed=seed + 1000 * s)) for s in range(n_cal_seeds)]
+    cal_streams = [
+        generate(StreamSpec(kind=spec.kind, n=n, domain=spec.domain, seed=seed + 1000 * s))
+        for s in range(n_cal_seeds)
+    ]
     cal_oracles = [ExactOracle(s) for s in cal_streams]
     heavy_keys = [oc.top_k(1)[0][0] for oc in cal_oracles]
 
@@ -75,14 +80,46 @@ def fit_laws(calibration, oracle, max_budget: int, seed: int, n_cal_seeds: int =
             k = max(16, min(8192, b // _BYTES_PER_ENTRY))
             core = _BottomKCore(k=k, seed=seed)
             core.update_batch(st.keys)
-            c_errs.append(query_loss(QueryType.CARDINALITY, _est(core.cardinality()), oc, Query(QueryType.CARDINALITY), n))
-            f_errs.append(query_loss(QueryType.FREQUENCY, _est(core.frequency(hk)), oc, Query(QueryType.FREQUENCY, key=hk), n))
+            c_errs.append(
+                query_loss(
+                    QueryType.CARDINALITY,
+                    _est(core.cardinality()),
+                    oc,
+                    Query(QueryType.CARDINALITY),
+                    n,
+                )
+            )
+            f_errs.append(
+                query_loss(
+                    QueryType.FREQUENCY,
+                    _est(core.frequency(hk)),
+                    oc,
+                    Query(QueryType.FREQUENCY, key=hk),
+                    n,
+                )
+            )
             q2 = TDigestNumpy(seed=seed, **TDigestNumpy.params_for_budget(b, seed=seed))
             q2.update_batch(st.values)
-            q_errs.append(query_loss(QueryType.QUANTILE, _est(q2.estimate(Query(QueryType.QUANTILE, q=0.5)).value), oc, Query(QueryType.QUANTILE, q=0.5), n))
+            q_errs.append(
+                query_loss(
+                    QueryType.QUANTILE,
+                    _est(q2.estimate(Query(QueryType.QUANTILE, q=0.5)).value),
+                    oc,
+                    Query(QueryType.QUANTILE, q=0.5),
+                    n,
+                )
+            )
             q4 = SpaceSaving(seed=seed, **SpaceSaving.params_for_budget(b, seed=seed))
             q4.update_batch(st.keys)
-            h_errs.append(query_loss(QueryType.HEAVY_HITTERS, _est(q4.estimate(Query(QueryType.HEAVY_HITTERS, top_k=10)).value), oc, Query(QueryType.HEAVY_HITTERS, top_k=10), n))
+            h_errs.append(
+                query_loss(
+                    QueryType.HEAVY_HITTERS,
+                    _est(q4.estimate(Query(QueryType.HEAVY_HITTERS, top_k=10)).value),
+                    oc,
+                    Query(QueryType.HEAVY_HITTERS, top_k=10),
+                    n,
+                )
+            )
         q1_b.append(b)
         q1_e.append(float(np.mean(c_errs)))
         q3_b.append(b)
@@ -93,10 +130,16 @@ def fit_laws(calibration, oracle, max_budget: int, seed: int, n_cal_seeds: int =
         q4_e.append(float(np.mean(h_errs)))
 
     return {
-        QueryType.CARDINALITY: fit_error_law_closed_form(np.array(q1_b, float), np.array(q1_e, float)),
-        QueryType.FREQUENCY: fit_error_law_closed_form(np.array(q3_b, float), np.array(q3_e, float)),
+        QueryType.CARDINALITY: fit_error_law_closed_form(
+            np.array(q1_b, float), np.array(q1_e, float)
+        ),
+        QueryType.FREQUENCY: fit_error_law_closed_form(
+            np.array(q3_b, float), np.array(q3_e, float)
+        ),
         QueryType.QUANTILE: fit_error_law_closed_form(np.array(q2_b, float), np.array(q2_e, float)),
-        QueryType.HEAVY_HITTERS: fit_error_law_closed_form(np.array(q4_b, float), np.array(q4_e, float)),
+        QueryType.HEAVY_HITTERS: fit_error_law_closed_form(
+            np.array(q4_b, float), np.array(q4_e, float)
+        ),
     }
 
 
@@ -130,16 +173,32 @@ def evaluate_allocation(
     heavy_key = oracle_eval.top_k(1)[0][0]
     losses = {
         QueryType.CARDINALITY: query_loss(
-            QueryType.CARDINALITY, system.estimate(Query(QueryType.CARDINALITY)), oracle_eval, Query(QueryType.CARDINALITY), n
+            QueryType.CARDINALITY,
+            system.estimate(Query(QueryType.CARDINALITY)),
+            oracle_eval,
+            Query(QueryType.CARDINALITY),
+            n,
         ),
         QueryType.FREQUENCY: query_loss(
-            QueryType.FREQUENCY, system.estimate(Query(QueryType.FREQUENCY, key=heavy_key)), oracle_eval, Query(QueryType.FREQUENCY, key=heavy_key), n
+            QueryType.FREQUENCY,
+            system.estimate(Query(QueryType.FREQUENCY, key=heavy_key)),
+            oracle_eval,
+            Query(QueryType.FREQUENCY, key=heavy_key),
+            n,
         ),
         QueryType.QUANTILE: query_loss(
-            QueryType.QUANTILE, system.estimate(Query(QueryType.QUANTILE, q=0.5)), oracle_eval, Query(QueryType.QUANTILE, q=0.5), n
+            QueryType.QUANTILE,
+            system.estimate(Query(QueryType.QUANTILE, q=0.5)),
+            oracle_eval,
+            Query(QueryType.QUANTILE, q=0.5),
+            n,
         ),
         QueryType.HEAVY_HITTERS: query_loss(
-            QueryType.HEAVY_HITTERS, system.estimate(Query(QueryType.HEAVY_HITTERS, top_k=10)), oracle_eval, Query(QueryType.HEAVY_HITTERS, top_k=10), n
+            QueryType.HEAVY_HITTERS,
+            system.estimate(Query(QueryType.HEAVY_HITTERS, top_k=10)),
+            oracle_eval,
+            Query(QueryType.HEAVY_HITTERS, top_k=10),
+            n,
         ),
     }
     return {
@@ -200,7 +259,9 @@ def run_benchmark(
         QueryType.QUANTILE: TDigestNumpy,
         QueryType.HEAVY_HITTERS: SpaceSaving,
     }
-    result = BenchmarkResult(datasets=list(datasets), budgets_bytes=list(budgets_bytes), seeds=list(seeds))
+    result = BenchmarkResult(
+        datasets=list(datasets), budgets_bytes=list(budgets_bytes), seeds=list(seeds)
+    )
 
     for name in datasets:
         for budget in budgets_bytes:
@@ -209,18 +270,33 @@ def run_benchmark(
                 oracle_cal = ExactOracle(calibration)
                 laws = fit_laws(calibration, oracle_cal, budget, seed, n_cal_seeds=n_cal_seeds)
                 ctx = build_context(laws, methods)
-                eval_stream = generate(StreamSpec(kind=name, n=n, domain=domain, seed=seed + 7_000_003))
+                eval_stream = generate(
+                    StreamSpec(kind=name, n=n, domain=domain, seed=seed + 7_000_003)
+                )
                 oracle_eval = ExactOracle(eval_stream)
 
                 # Flagship: data-driven OPTIMAL allocation (grid search over the fitted
                 # power-law error laws). Main baseline: non-adaptive StaticFixed. Ablation:
                 # uniform. Upper bound: per-segment optimum.
-                flagship = evaluate_allocation(SimplexGridSearch(), laws, ctx, budget, eval_stream, oracle_eval, seed, config)
-                static = evaluate_allocation(StaticFixed(), laws, ctx, budget, eval_stream, oracle_eval, seed, config)
-                uniform = evaluate_allocation(UniformStrategy(), laws, ctx, budget, eval_stream, oracle_eval, seed, config)
-                per_seg = evaluate_allocation(PerSegmentOptimal(), laws, ctx, budget, eval_stream, oracle_eval, seed, config)
+                flagship = evaluate_allocation(
+                    SimplexGridSearch(), laws, ctx, budget, eval_stream, oracle_eval, seed, config
+                )
+                static = evaluate_allocation(
+                    StaticFixed(), laws, ctx, budget, eval_stream, oracle_eval, seed, config
+                )
+                uniform = evaluate_allocation(
+                    UniformStrategy(), laws, ctx, budget, eval_stream, oracle_eval, seed, config
+                )
+                per_seg = evaluate_allocation(
+                    PerSegmentOptimal(), laws, ctx, budget, eval_stream, oracle_eval, seed, config
+                )
 
-                g_f, g_s, g_u, g_p = flagship["gate_score"], static["gate_score"], uniform["gate_score"], per_seg["gate_score"]
+                g_f, g_s, g_u, g_p = (
+                    flagship["gate_score"],
+                    static["gate_score"],
+                    uniform["gate_score"],
+                    per_seg["gate_score"],
+                )
                 ratio = g_f / g_s if g_s > 0 else float("nan")
                 ablation = g_f / g_u if g_u > 0 else float("nan")
                 oracle_ratio = g_f / g_p if g_p > 0 else float("nan")
@@ -232,8 +308,19 @@ def run_benchmark(
                 # This is a leakage/generalization check, not an analytic-law prediction,
                 # because the calibrated error laws are only an approximation.
                 try:
-                    cal_flagship = evaluate_allocation(SimplexGridSearch(), laws, ctx, budget, calibration, oracle_cal, seed, config)
-                    cal_baseline = evaluate_allocation(StaticFixed(), laws, ctx, budget, calibration, oracle_cal, seed, config)
+                    cal_flagship = evaluate_allocation(
+                        SimplexGridSearch(),
+                        laws,
+                        ctx,
+                        budget,
+                        calibration,
+                        oracle_cal,
+                        seed,
+                        config,
+                    )
+                    cal_baseline = evaluate_allocation(
+                        StaticFixed(), laws, ctx, budget, calibration, oracle_cal, seed, config
+                    )
                     g_cf, g_cb = cal_flagship["gate_score"], cal_baseline["gate_score"]
                     pred = g_cf / g_cb if g_cb > 0 else float("nan")
                 except Exception:
@@ -244,10 +331,26 @@ def run_benchmark(
                         "dataset": name,
                         "budget": budget,
                         "seed": seed,
-                        "flagship": {"gate_score": g_f, "plan": flagship["plan"], "memory_bytes": flagship["memory_bytes"]},
-                        "static_fixed": {"gate_score": g_s, "plan": static["plan"], "memory_bytes": static["memory_bytes"]},
-                        "uniform": {"gate_score": g_u, "plan": uniform["plan"], "memory_bytes": uniform["memory_bytes"]},
-                        "per_segment": {"gate_score": g_p, "plan": per_seg["plan"], "memory_bytes": per_seg["memory_bytes"]},
+                        "flagship": {
+                            "gate_score": g_f,
+                            "plan": flagship["plan"],
+                            "memory_bytes": flagship["memory_bytes"],
+                        },
+                        "static_fixed": {
+                            "gate_score": g_s,
+                            "plan": static["plan"],
+                            "memory_bytes": static["memory_bytes"],
+                        },
+                        "uniform": {
+                            "gate_score": g_u,
+                            "plan": uniform["plan"],
+                            "memory_bytes": uniform["memory_bytes"],
+                        },
+                        "per_segment": {
+                            "gate_score": g_p,
+                            "plan": per_seg["plan"],
+                            "memory_bytes": per_seg["memory_bytes"],
+                        },
                         "ratio": ratio,
                         "ablation": ablation,
                         "oracle_ratio": oracle_ratio,
@@ -255,7 +358,11 @@ def run_benchmark(
                     }
                 )
 
-    predicted = np.nanmean([v for v in result._predicted_vals if np.isfinite(v)]) if getattr(result, "_predicted_vals", []) else float("nan")
+    predicted = (
+        np.nanmean([v for v in result._predicted_vals if np.isfinite(v)])
+        if getattr(result, "_predicted_vals", [])
+        else float("nan")
+    )
     result.predicted_ratio = float(predicted)
 
     result.gate = evaluate_gates(
@@ -268,6 +375,8 @@ def run_benchmark(
     return result
 
 
-def _predicted_mean(result, budgets_bytes, seeds, n, domain, delta, config) -> float:  # pragma: no cover - retained for API symmetry
+def _predicted_mean(
+    result, budgets_bytes, seeds, n, domain, delta, config
+) -> float:  # pragma: no cover - retained for API symmetry
     """Deprecated: predicted ratio is now computed inline in run_benchmark from the fitted laws."""
     return float("nan")

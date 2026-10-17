@@ -22,7 +22,13 @@ from typing import Any
 from sketchforge.core.errors import DeterminismViolationError
 
 # Fields that legitimately differ between runs and must be masked before comparison.
-VOLATILE_PATHS = ("generated_at", "records[].elapsed_sec", "aggregates[].elapsed_sec", "environment.hostname", "environment.pid")
+VOLATILE_PATHS = (
+    "generated_at",
+    "records[].elapsed_sec",
+    "aggregates[].elapsed_sec",
+    "environment.hostname",
+    "environment.pid",
+)
 
 STOCHASTIC_SENTINEL = "<stochastic>"
 VOLATILE_SENTINEL = "<volatile>"
@@ -148,10 +154,16 @@ def evaluate_gates(
     g1 = bool(max(ratios) < 1.0)
     mean_ratio = float(sum(ratios) / len(ratios))
     g2 = bool(mean_ratio <= 1.0 - delta)
-    oracle_ratio = float(sum(per_segment_ratios) / len(per_segment_ratios)) if per_segment_ratios else float("nan")
+    oracle_ratio = (
+        float(sum(per_segment_ratios) / len(per_segment_ratios))
+        if per_segment_ratios
+        else float("nan")
+    )
     g3 = bool(oracle_ratio <= 1.02)
     g4 = bool(abs(predicted_ratio - mean_ratio) <= 0.03)
-    ablation = float(sum(ablation_ratios) / len(ablation_ratios)) if ablation_ratios else float("nan")
+    ablation = (
+        float(sum(ablation_ratios) / len(ablation_ratios)) if ablation_ratios else float("nan")
+    )
     g_ablation = bool(ablation <= 0.95)
     if not g1:
         notes.append(f"max G_ratio={max(ratios):.4f} not < 1.0")

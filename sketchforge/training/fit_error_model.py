@@ -109,7 +109,11 @@ def fit_error_law_closed_form(
     r2 = 1.0 - ss_res / ss_tot if ss_tot > 0 else 0.0
     floor = float(np.min(errors))
     degenerate = (c <= 0.0) or (r2 < _DEGENERATE_R2)
-    reason = "" if not degenerate else (f"non-positive elasticity c={c:.4f}" if c <= 0 else f"low r2={r2:.4f}")
+    reason = (
+        ""
+        if not degenerate
+        else (f"non-positive elasticity c={c:.4f}" if c <= 0 else f"low r2={r2:.4f}")
+    )
     return ErrorLaw(
         a=a,
         c=c,
@@ -122,7 +126,9 @@ def fit_error_law_closed_form(
     )
 
 
-def crosscheck_with_curve_fit(law: ErrorLaw, budgets: np.ndarray, errors: np.ndarray) -> dict[str, float]:
+def crosscheck_with_curve_fit(
+    law: ErrorLaw, budgets: np.ndarray, errors: np.ndarray
+) -> dict[str, float]:
     """Offline cross-check against an iterative fitter; results enter audits only."""
     try:
         from scipy.optimize import curve_fit

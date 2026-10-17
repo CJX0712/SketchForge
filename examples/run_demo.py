@@ -57,9 +57,15 @@ def run_demo(n: int = 5000, budget: int = 2048, seed: int = 1337) -> None:
 
         ratio = fs["gate_score"] / sf["gate_score"] if sf["gate_score"] > 0 else float("nan")
         print(f"\n[{kind}] budget={budget}B  distinct={ore.cardinality():.0f}")
-        print(f"  flagship (data-driven opt)  G={fs['gate_score']:.3f}  plan={fs['plan']}  bytes={fs['memory_bytes']}")
-        print(f"  baseline (fixed, non-adapt) G={sf['gate_score']:.3f}  plan={sf['plan']}  bytes={sf['memory_bytes']}")
-        print(f"  ablation (uniform)          G={uf['gate_score']:.3f}  plan={uf['plan']}  bytes={uf['memory_bytes']}")
+        print(
+            f"  flagship (data-driven opt)  G={fs['gate_score']:.3f}  plan={fs['plan']}  bytes={fs['memory_bytes']}"
+        )
+        print(
+            f"  baseline (fixed, non-adapt) G={sf['gate_score']:.3f}  plan={sf['plan']}  bytes={sf['memory_bytes']}"
+        )
+        print(
+            f"  ablation (uniform)          G={uf['gate_score']:.3f}  plan={uf['plan']}  bytes={uf['memory_bytes']}"
+        )
         print(f"  flagship/baseline ratio = {ratio:.3f}  (lower is better)")
 
         # Show a single raw estimate vs truth for transparency.
@@ -70,7 +76,9 @@ def run_demo(n: int = 5000, budget: int = 2048, seed: int = 1337) -> None:
         card = sysd.estimate(Query(QueryType.CARDINALITY)).value
         hk = ore.top_k(1)[0][0]
         freq = sysd.estimate(Query(QueryType.FREQUENCY, key=hk)).value
-        print(f"  sanity: cardinality est={card:.1f} truth={ore.cardinality():.1f} | top-key freq est={freq:.0f} truth={ore.frequency(hk):.0f}")
+        print(
+            f"  sanity: cardinality est={card:.1f} truth={ore.cardinality():.1f} | top-key freq est={freq:.0f} truth={ore.frequency(hk):.0f}"
+        )
 
     print("\nDone. For gate evidence run benchmarks/gate_benchmark.py (R=20).")
 

@@ -14,7 +14,9 @@ def test_small_uniform_run_passes_all_gates():
     # n=2000/seed=1337 is a deterministic configuration where the adaptive flagship
     # beats the fixed baseline strictly, matches the per-segment optimum, and clears
     # every pre-registered gate including the calibration/eval consistency check.
-    res = run_benchmark(datasets=["uniform"], budgets_bytes=[1024], seeds=[1337], n=2000, domain=5000, delta=0.15)
+    res = run_benchmark(
+        datasets=["uniform"], budgets_bytes=[1024], seeds=[1337], n=2000, domain=5000, delta=0.15
+    )
     gate = res.gate
     assert gate is not None
     assert res.ratios and max(res.ratios) < 1.0

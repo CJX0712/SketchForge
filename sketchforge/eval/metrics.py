@@ -58,7 +58,9 @@ def frequency_rel_err(estimate: float, true_frequency: int) -> float:
     return abs(estimate - true_frequency) / max(true_frequency, 1)
 
 
-def heavy_hitter_one_minus_f1(estimate: list[tuple[int, int]], oracle: ExactOracle, top_k: int) -> float:
+def heavy_hitter_one_minus_f1(
+    estimate: list[tuple[int, int]], oracle: ExactOracle, top_k: int
+) -> float:
     predicted = {(int(k)) for k, _ in estimate}
     truth = {int(k) for k, _ in oracle.top_k(top_k)}
     if not predicted and not truth:

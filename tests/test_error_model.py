@@ -23,7 +23,7 @@ def test_predict_matches_synthetic_curve():
     a, c = 2.5, 0.5
     errors = a * np.power(budgets, -c)
     law = fit_error_law_closed_form(budgets, errors)
-    assert abs(law.predict(256) - 2.5 * 256 ** -0.5) < 1e-6
+    assert abs(law.predict(256) - 2.5 * 256**-0.5) < 1e-6
     # never below floor, and finite at budget 0
     assert law.predict(0) > 0
     assert np.isfinite(law.predict(10**9))

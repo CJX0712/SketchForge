@@ -106,4 +106,6 @@ def largest_remainder(fractions: np.ndarray, total: int) -> list[int]:
 
 def make_plan(alloc: dict[str, int], total_bytes: int, strategy: str) -> BudgetPlan:
     """Build a validated :class:`BudgetPlan`."""
-    return BudgetPlan(alloc={k: int(v) for k, v in alloc.items()}, total_bytes=int(total_bytes), strategy=strategy)
+    return BudgetPlan(
+        alloc={k: int(v) for k, v in alloc.items()}, total_bytes=int(total_bytes), strategy=strategy
+    )

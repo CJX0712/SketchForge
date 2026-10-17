@@ -19,8 +19,15 @@ import time
 from sketchforge.pipeline.stages import run_benchmark
 
 DATASETS = [
-    "uniform", "zipf", "pareto", "gmm", "low_card",
-    "high_card", "elephant_mice", "drift_abrupt", "drift_gradual",
+    "uniform",
+    "zipf",
+    "pareto",
+    "gmm",
+    "low_card",
+    "high_card",
+    "elephant_mice",
+    "drift_abrupt",
+    "drift_gradual",
 ]
 BUDGETS = [1024, 4096]
 SEEDS = [1000 + 7 * i for i in range(20)]  # R = 20
@@ -64,8 +71,14 @@ def main() -> int:
         "gate_passed": result.gate.passed if result.gate else None,
         "gate": result.gate.__dict__ if result.gate else None,
         "mean_ratio": round(sum(result.ratios) / len(result.ratios), 4) if result.ratios else None,
-        "mean_ablation": round(sum(result.ablation_ratios) / len(result.ablation_ratios), 4) if result.ablation_ratios else None,
-        "mean_per_segment": round(sum(result.per_segment_ratios) / len(result.per_segment_ratios), 4) if result.per_segment_ratios else None,
+        "mean_ablation": round(sum(result.ablation_ratios) / len(result.ablation_ratios), 4)
+        if result.ablation_ratios
+        else None,
+        "mean_per_segment": round(
+            sum(result.per_segment_ratios) / len(result.per_segment_ratios), 4
+        )
+        if result.per_segment_ratios
+        else None,
         "predicted_ratio": result.predicted_ratio,
         "n_runs": len(result.per_run),
         "per_run": [
@@ -96,7 +109,10 @@ def main() -> int:
 
     print(f"elapsed={elapsed:.1f}s runs={len(result.per_run)}", file=sys.stderr)
     print(f"gate_passed={payload['gate_passed']}", file=sys.stderr)
-    print(f"mean_ratio={payload['mean_ratio']} mean_ablation={payload['mean_ablation']}", file=sys.stderr)
+    print(
+        f"mean_ratio={payload['mean_ratio']} mean_ablation={payload['mean_ablation']}",
+        file=sys.stderr,
+    )
     print(f"wrote {out_path}", file=sys.stderr)
     return 0
 

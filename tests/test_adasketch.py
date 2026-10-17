@@ -65,6 +65,7 @@ def test_shared_core_serves_cardinality_and_frequency():
     truth = oracle.frequency(hk)
     assert est == truth or est == 0.0  # retained -> exact; otherwise bottom-k returns 0
 
+
 def test_baseline_static_fixed_also_answers_all_four():
     calib = generate(StreamSpec(kind="uniform", n=2000, domain=5000, seed=1337))
     laws = fit_laws(calib, ExactOracle(calib), 1024, 1337, n_cal_seeds=1)

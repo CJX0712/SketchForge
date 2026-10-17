@@ -38,7 +38,9 @@ def normalized_errors(
     return out
 
 
-def geometric_mean(errors: dict[QueryType, float], weights: dict[QueryType, float] | None = None) -> float:
+def geometric_mean(
+    errors: dict[QueryType, float], weights: dict[QueryType, float] | None = None
+) -> float:
     """Geometric mean of normalized errors with equal-or-weighted exponents."""
     keys = list(errors.keys())
     if not keys:

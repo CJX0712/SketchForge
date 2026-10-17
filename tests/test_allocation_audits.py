@@ -134,8 +134,12 @@ def test_budget_response_requires_sensitivity():
 
 def test_spend_and_method_parity():
     # equal total spend -> parity holds regardless of internal split
-    assert spend_parity({"M_shared": 500, "M_q2": 300, "M_q4": 200}, {"M_shared": 400, "M_q2": 300, "M_q4": 300}).passed
+    assert spend_parity(
+        {"M_shared": 500, "M_q2": 300, "M_q4": 200}, {"M_shared": 400, "M_q2": 300, "M_q4": 300}
+    ).passed
     # different total spend -> parity fails (a win must not be bought with more memory)
-    assert not spend_parity({"M_shared": 600, "M_q2": 300, "M_q4": 200}, {"M_shared": 400, "M_q2": 300, "M_q4": 300}).passed
+    assert not spend_parity(
+        {"M_shared": 600, "M_q2": 300, "M_q4": 200}, {"M_shared": 400, "M_q2": 300, "M_q4": 300}
+    ).passed
     assert method_parity({"q1": "a"}, {"q1": "a"}).passed
     assert not method_parity({"q1": "a"}, {"q1": "b"}).passed

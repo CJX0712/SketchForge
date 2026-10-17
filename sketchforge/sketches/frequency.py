@@ -59,7 +59,9 @@ class CountMinNumpy(AbstractSketch):
     def _fold(self, items: np.ndarray) -> None:
         arr = np.asarray(items, dtype=np.int64)
         for r in range(DEPTH_CM):
-            idx = (hash_array_u64(arr, self._row_seeds[r]) % np.uint64(self._width)).astype(np.int64)
+            idx = (hash_array_u64(arr, self._row_seeds[r]) % np.uint64(self._width)).astype(
+                np.int64
+            )
             np.add.at(self._counts, (r, idx), 1)
 
     def update(self, item: object) -> None:
@@ -112,7 +114,9 @@ class CuSketchNumpy(AbstractSketch):
     def _fold(self, items: np.ndarray) -> None:
         arr = np.asarray(items, dtype=np.int64)
         for r in range(DEPTH_CM):
-            idx = (hash_array_u64(arr, self._row_seeds[r]) % np.uint64(self._width)).astype(np.int64)
+            idx = (hash_array_u64(arr, self._row_seeds[r]) % np.uint64(self._width)).astype(
+                np.int64
+            )
             target = 0
             for _j, i in enumerate(idx):
                 current = int(self._counts[r, i])
@@ -251,4 +255,7 @@ class ExactHashTruncate(AbstractSketch):
     def _restore(self, arrays: dict, scalars: dict) -> None:
         self._capacity = int(scalars["_capacity"])
         self._total = int(scalars["_total"])
-        self._lookup = {int(k): int(v) for k, v in zip(arrays["_k"].tolist(), arrays["_v"].tolist(), strict=True)}
+        self._lookup = {
+            int(k): int(v)
+            for k, v in zip(arrays["_k"].tolist(), arrays["_v"].tolist(), strict=True)
+        }

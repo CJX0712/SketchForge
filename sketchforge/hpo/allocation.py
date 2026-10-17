@@ -97,7 +97,9 @@ class AllocationStrategy(Protocol):
 
     name: str
 
-    def allocate(self, laws: dict[QueryType, ErrorLaw], budget: int, ctx: AllocContext) -> dict[str, int]: ...
+    def allocate(
+        self, laws: dict[QueryType, ErrorLaw], budget: int, ctx: AllocContext
+    ) -> dict[str, int]: ...
 
 
 class UniformStrategy:
@@ -105,7 +107,9 @@ class UniformStrategy:
 
     name = "uniform"
 
-    def allocate(self, laws: dict[QueryType, ErrorLaw], budget: int, ctx: AllocContext) -> dict[str, int]:
+    def allocate(
+        self, laws: dict[QueryType, ErrorLaw], budget: int, ctx: AllocContext
+    ) -> dict[str, int]:
         n = len(ctx.modules)
         ints = largest_remainder(np.ones(n, dtype=np.float64), budget)
         return dict(zip(ctx.modules, ints, strict=False))
@@ -125,7 +129,9 @@ class StaticFixed:
 
     name = "static_fixed"
 
-    def allocate(self, laws: dict[QueryType, ErrorLaw], budget: int, ctx: AllocContext) -> dict[str, int]:
+    def allocate(
+        self, laws: dict[QueryType, ErrorLaw], budget: int, ctx: AllocContext
+    ) -> dict[str, int]:
         served = np.array([len(SERVED[m]) for m in ctx.modules], dtype=np.float64)
         ints = largest_remainder(served, budget)
         return dict(zip(ctx.modules, ints, strict=False))
@@ -142,7 +148,9 @@ class ElasticityWaterFilling:
 
     name = "elasticity_water_filling"
 
-    def allocate(self, laws: dict[QueryType, ErrorLaw], budget: int, ctx: AllocContext, rounds: int = 14) -> dict[str, int]:
+    def allocate(
+        self, laws: dict[QueryType, ErrorLaw], budget: int, ctx: AllocContext, rounds: int = 14
+    ) -> dict[str, int]:
         weights = np.array([ctx.module_weight(m, laws) for m in ctx.modules], dtype=np.float64)
         weights = np.abs(weights)  # marginal utility is positive (error decreases with budget)
         if weights.sum() <= 0 or not np.all(np.isfinite(weights)):
@@ -178,7 +186,9 @@ class DegenerateFallback:
     def __init__(self, inner: AllocationStrategy) -> None:
         self.inner = inner
 
-    def allocate(self, laws: dict[QueryType, ErrorLaw], budget: int, ctx: AllocContext) -> dict[str, int]:
+    def allocate(
+        self, laws: dict[QueryType, ErrorLaw], budget: int, ctx: AllocContext
+    ) -> dict[str, int]:
         degenerate = [qt.value for qt, law in laws.items() if law is None or law.degenerate]
         if degenerate:
             plan = UniformStrategy().allocate(laws, budget, ctx)
@@ -194,7 +204,9 @@ class SimplexGridSearch:
     def __init__(self, step_frac: float = 0.02) -> None:
         self.step_frac = step_frac
 
-    def allocate(self, laws: dict[QueryType, ErrorLaw], budget: int, ctx: AllocContext) -> dict[str, int]:
+    def allocate(
+        self, laws: dict[QueryType, ErrorLaw], budget: int, ctx: AllocContext
+    ) -> dict[str, int]:
         from sketchforge.hpo.budget_search import grid_search_allocation
 
         return grid_search_allocation(laws, budget, ctx, step_frac=self.step_frac)
@@ -205,7 +217,9 @@ class PerSegmentOptimal:
 
     name = "per_segment_optimal"
 
-    def allocate(self, laws: dict[QueryType, ErrorLaw], budget: int, ctx: AllocContext) -> dict[str, int]:
+    def allocate(
+        self, laws: dict[QueryType, ErrorLaw], budget: int, ctx: AllocContext
+    ) -> dict[str, int]:
         from sketchforge.hpo.budget_search import grid_search_allocation
 
         return grid_search_allocation(laws, budget, ctx)
@@ -225,7 +239,9 @@ class StaticOptimalFrozen:
     def __init__(self) -> None:
         self._frozen: dict[str, int] | None = None
 
-    def allocate(self, laws: dict[QueryType, ErrorLaw], budget: int, ctx: AllocContext) -> dict[str, int]:
+    def allocate(
+        self, laws: dict[QueryType, ErrorLaw], budget: int, ctx: AllocContext
+    ) -> dict[str, int]:
         if self._frozen is not None and self._frozen.get("__budget__") == budget:
             return {k: v for k, v in self._frozen.items() if k != "__budget__"}
         from sketchforge.hpo.budget_search import grid_search_allocation
@@ -251,7 +267,9 @@ def predict_losses(plan: dict[str, int], laws: dict[QueryType, ErrorLaw]) -> dic
     return out
 
 
-def predict_gate_score(plan: dict[str, int], laws: dict[QueryType, ErrorLaw], weights=None) -> float:
+def predict_gate_score(
+    plan: dict[str, int], laws: dict[QueryType, ErrorLaw], weights=None
+) -> float:
     """Predicted geometric-mean gate score for an allocation under the fitted laws."""
     losses = predict_losses(plan, laws)
     return geometric_mean(normalized_errors(losses, weights))

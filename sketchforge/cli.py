@@ -62,11 +62,22 @@ def _cmd_bench(args: argparse.Namespace) -> int:
     datasets = args.datasets.split(",") if args.datasets else ["uniform", "zipf", "high_card"]
     budgets = [int(b) for b in args.budgets.split(",")] if args.budgets else [1024, 4096]
     seeds = [1000 + 7 * i for i in range(args.seeds)]
-    res = run_benchmark(datasets=datasets, budgets_bytes=budgets, seeds=seeds, n=args.n, domain=args.domain, delta=args.delta)
+    res = run_benchmark(
+        datasets=datasets,
+        budgets_bytes=budgets,
+        seeds=seeds,
+        n=args.n,
+        domain=args.domain,
+        delta=args.delta,
+    )
     print(f"datasets={datasets} budgets={budgets} seeds={len(seeds)}")
-    print(f"mean_ratio(flagship/static)   = {sum(res.ratios)/len(res.ratios):.4f}")
-    print(f"mean_ablation(flagship/uniform) = {sum(res.ablation_ratios)/len(res.ablation_ratios):.4f}")
-    print(f"mean_oracle(flagship/segopt)   = {sum(res.per_segment_ratios)/len(res.per_segment_ratios):.4f}")
+    print(f"mean_ratio(flagship/static)   = {sum(res.ratios) / len(res.ratios):.4f}")
+    print(
+        f"mean_ablation(flagship/uniform) = {sum(res.ablation_ratios) / len(res.ablation_ratios):.4f}"
+    )
+    print(
+        f"mean_oracle(flagship/segopt)   = {sum(res.per_segment_ratios) / len(res.per_segment_ratios):.4f}"
+    )
     g = res.gate
     if g is not None:
         print(f"GATE passed = {g.passed}")
@@ -76,7 +87,9 @@ def _cmd_bench(args: argparse.Namespace) -> int:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(prog="sketchforge", description="Fixed-budget data-stream sketching toolkit")
+    p = argparse.ArgumentParser(
+        prog="sketchforge", description="Fixed-budget data-stream sketching toolkit"
+    )
     sub = p.add_subparsers(dest="cmd", required=True)
 
     sub.add_parser("info", help="print environment and backend status")

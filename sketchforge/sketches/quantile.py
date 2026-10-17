@@ -266,7 +266,12 @@ class TDigestNumpy(AbstractSketch):
             left = self._c[best_i]
             right = self._c[best_i + 1]
             merged = np.array(
-                [[(left[0] * left[1] + right[0] * right[1]) / (left[1] + right[1]), left[1] + right[1]]],
+                [
+                    [
+                        (left[0] * left[1] + right[0] * right[1]) / (left[1] + right[1]),
+                        left[1] + right[1],
+                    ]
+                ],
                 dtype=np.float64,
             )
             self._c = np.vstack((self._c[:best_i], merged, self._c[best_i + 2 :]))

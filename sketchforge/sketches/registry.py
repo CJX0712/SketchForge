@@ -44,7 +44,9 @@ def discover(
     key = query_type.value if isinstance(query_type, QueryType) else query_type
     out: list[type] = []
     for cls in _REGISTRY.values():
-        types = {t.value if isinstance(t, QueryType) else str(t) for t in getattr(cls, "QUERY_TYPES", ())}
+        types = {
+            t.value if isinstance(t, QueryType) else str(t) for t in getattr(cls, "QUERY_TYPES", ())
+        }
         if key is not None and key not in types:
             continue
         if deterministic_only and not getattr(cls, "DETERMINISTIC", True):

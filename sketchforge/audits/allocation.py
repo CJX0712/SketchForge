@@ -44,7 +44,9 @@ def _ratio_is_vacuous(denominators: list[float]) -> bool:
     return all(abs(d - first) < 1e-12 for d in denominators)
 
 
-def allocation_separation(plan_a: dict[str, int], plan_b: dict[str, int], threshold: float = 1.20) -> AuditItem:
+def allocation_separation(
+    plan_a: dict[str, int], plan_b: dict[str, int], threshold: float = 1.20
+) -> AuditItem:
     """``max_m max(b^A_m, b^U_m) / min(b^A_m, b^U_m)`` over the shared modules.
 
     Detects that the two strategies actually diverge somewhere (otherwise a "win" is
@@ -87,28 +89,63 @@ def budget_utilisation(achieved: dict[str, int], budget: int, threshold: float =
     # with an explicit vacuous flag; it is only meaningful because `achieved` is the
     # *real* measured footprint which can be < B.
     vacuous = _ratio_is_vacuous([float(budget)])
-    return AuditItem("budget_utilisation", ratio, threshold, bool(ratio >= threshold), vacuous=vacuous, detail="measured footprint / budget")
+    return AuditItem(
+        "budget_utilisation",
+        ratio,
+        threshold,
+        bool(ratio >= threshold),
+        vacuous=vacuous,
+        detail="measured footprint / budget",
+    )
 
 
 def budget_response(g_at_b: float, g_at_2b: float, threshold: float = 0.02) -> AuditItem:
     """``|G(2B) - G(B)| / G(B)``; guards that the metric is actually budget-sensitive
     (if G does not move with budget, the allocation experiment is vacuous)."""
     if g_at_b <= 0:
-        return AuditItem("budget_response", 0.0, threshold, False, vacuous=True, detail="baseline gate score is non-positive")
+        return AuditItem(
+            "budget_response",
+            0.0,
+            threshold,
+            False,
+            vacuous=True,
+            detail="baseline gate score is non-positive",
+        )
     resp = abs(g_at_2b - g_at_b) / g_at_b
     # Denominator G(B) is object-specific -> not vacuous.
-    return AuditItem("budget_response", resp, threshold, bool(resp >= threshold), vacuous=False, detail="|G(2B)-G(B)|/G(B)")
+    return AuditItem(
+        "budget_response",
+        resp,
+        threshold,
+        bool(resp >= threshold),
+        vacuous=False,
+        detail="|G(2B)-G(B)|/G(B)",
+    )
 
 
 def spend_parity(plan_a: dict[str, int], plan_b: dict[str, int]) -> AuditItem:
     """``|sum(b^A) - sum(b^U)| <= 1`` byte: both strategies must actually spend the
     same total budget (otherwise a "win" is bought with more memory)."""
     diff = abs(sum(plan_a.values()) - sum(plan_b.values()))
-    return AuditItem("spend_parity", float(diff), 1.0, bool(diff <= 1), vacuous=False, detail="absolute byte difference of the two total spends")
+    return AuditItem(
+        "spend_parity",
+        float(diff),
+        1.0,
+        bool(diff <= 1),
+        vacuous=False,
+        detail="absolute byte difference of the two total spends",
+    )
 
 
 def method_parity(methods_a: dict[str, str], methods_b: dict[str, str]) -> AuditItem:
     """The two strategies must route each query to the *same* sketch method, so a
     difference can only come from allocation, never from method selection."""
     same = dict(methods_a) == dict(methods_b)
-    return AuditItem("method_parity", 0.0 if same else 1.0, 0.0, same, vacuous=False, detail="method_per_query identical across strategies")
+    return AuditItem(
+        "method_parity",
+        0.0 if same else 1.0,
+        0.0,
+        same,
+        vacuous=False,
+        detail="method_per_query identical across strategies",
+    )

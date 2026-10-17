@@ -226,14 +226,16 @@ def available_datasketches() -> bool:
 ```python
 class AllocationStrategy(Protocol):
     name: str
+
     def allocate(self, laws, budget: int, ctx: AllocContext) -> dict[str, int]: ...
 
-UniformStrategy        # 消融对照：b_m = B/|M|
-StaticOptimalFrozen    # 主门禁基线：在校准 seed 集上 grid search 后**冻结**的单一分配
-ElasticityWaterFilling # 旗舰：按段拟合弹性做边际收益均等
-PerSegmentOptimal      # 金标准（不可实现上界）：每段各自 grid search
-SimplexGridSearch      # 求解器（在拟合律上解析求值），供 StaticOptimal 与 PerSegment 使用
-DegenerateFallback     # 律退化（c ≤ 0 或 r² < 0.9）时退回均匀并记 reason
+
+UniformStrategy  # 消融对照：b_m = B/|M|
+StaticOptimalFrozen  # 主门禁基线：在校准 seed 集上 grid search 后**冻结**的单一分配
+ElasticityWaterFilling  # 旗舰：按段拟合弹性做边际收益均等
+PerSegmentOptimal  # 金标准（不可实现上界）：每段各自 grid search
+SimplexGridSearch  # 求解器（在拟合律上解析求值），供 StaticOptimal 与 PerSegment 使用
+DegenerateFallback  # 律退化（c ≤ 0 或 r² < 0.9）时退回均匀并记 reason
 ```
 
 ### 7.3 分配流程
@@ -297,7 +299,7 @@ b_m = ( Σ_{i ∈ served(m)} w_i · c_i ) / λ        ← 模块级推广
 ### 8.1 唯一 seed 入口
 
 ```python
-state = core.seed.set_all(cfg.seed)      # random.seed + np.random.seed 一次设齐
+state = core.seed.set_all(cfg.seed)  # random.seed + np.random.seed 一次设齐
 state.derive("data") / ("probe:Q2") / ("sketch:Q1") / ...
 ```
 
@@ -324,8 +326,13 @@ G3 把"不可复现"转成"**有界**"——既不假装复现，也不删除这
 **volatile 白名单**（显式列举，不做"看起来像时间就删"的启发式）：
 
 ```python
-VOLATILE_PATHS = ("generated_at", "records[].elapsed_sec",
-                  "aggregates[].elapsed_sec", "environment.hostname", "environment.pid")
+VOLATILE_PATHS = (
+    "generated_at",
+    "records[].elapsed_sec",
+    "aggregates[].elapsed_sec",
+    "environment.hostname",
+    "environment.pid",
+)
 ```
 
 `canonicalize()`：深拷贝 → 白名单路径置 `null` → 随机记录 value/score 置 `"<stochastic>"` → `json.dumps(sort_keys=True, ensure_ascii=False)` → sha256。两次运行须走**子进程**（避免同进程缓存污染）。CI 固定 `PYTHONHASHSEED=0`、`n_jobs=1`（`Config.validate()` 对 `n_jobs != 1` 直接 `E101`）。
